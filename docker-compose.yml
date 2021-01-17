@@ -1,0 +1,69 @@
+version: "3.5"
+services:
+  client:
+    hostname: grgc-client
+    container_name: grgc-client
+    build:
+        context: ./client
+        dockerfile: ./Dockerfile
+    volumes:
+      - './client:/app'
+      - '/app/node_modules'
+    ports:
+      - 3000:3000
+    networks:
+      - grgc-network
+  envoy:
+    container_name: grgc-envoy
+    hostname: grgc-envoy
+    build:
+      context: ./envoy
+      dockerfile: ./Dockerfile
+    ports:
+      - 9000:9000
+      - 9901:9901
+    stdin_open: true
+    networks:
+      - grgc-network
+    tty: true
+  server:
+    hostname: grgc-server
+    container_name: grgc-server
+    build:
+      context: ./server
+      dockerfile: ./build/dev/Dockerfile
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - WAIT_HOSTS=${POSTGRES_URL}
+      - WAIT_HOSTS_TIMEOUT=300
+      - WAIT_SLEEP_INTERVAL=30
+      - WAIT_HOST_CONNECT_TIMEOUT=30
+    command: sh -c "/wait && air -c .air.conf"
+    volumes:
+      - ./server/cmd:/app/cmd
+      - ./server/internal:/app/internal
+      - ./server/pkg:/app/pkg
+      - ./server/pb:/app/pb
+      - ./.env:/app/.env
+    depends_on:
+      - postgres
+    ports:
+      - 8080:8080
+    networks:
+      - grgc-network
+  postgres:
+    hostname: grgc-pg
+    container_name: grgc-pg
+    image: postgres:9.6.19
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - ./server/docs/postgres:/docker-entrypoint-initdb.d
+    ports:
+      - 5432:5432
+    networks:
+      - grgc-network
+networks:
+  grgc-network:

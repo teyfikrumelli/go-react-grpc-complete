@@ -1,0 +1,8 @@
+.idea
+
+.env
+
+client/node_modules
+client/build
+
+server/vendor

@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package grgc;
+
+option go_package = ".;pb";
+
+message RegisterRequest {
+  string username = 1;
+  string password = 2;
+  string email = 3;
+}
+
+message RegisterResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  uint32 user_id = 3;
+}
+
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  uint32 user_id = 3;
+}
+
+message RefreshRequest { string refresh_token = 1; }
+
+message RefreshResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  uint32 user_id = 3;
+}
+
+service AuthService {
+  rpc Register(RegisterRequest) returns(RegisterResponse){};
+  rpc Login(LoginRequest) returns(LoginResponse){};
+  rpc Refresh(RefreshRequest) returns(RefreshResponse){};
+}
